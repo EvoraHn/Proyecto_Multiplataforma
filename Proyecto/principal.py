@@ -32,40 +32,56 @@ class Main(QWidget):
 
     def main_desing(self):
         """ Diseño principal de la aplicación. """
+
+        self.title = QLabel("Buscar una Lamina Educativa : ")
+        self.input_busqueda = QLineEdit()
+        #self.image = QLabel()
+
         self.lista_producto = QListWidget()
         self.btn_inventario = QPushButton("Inventario")
         #self.btn_new.clicked.connect(self.add_employee)
         self.btn_ventas = QPushButton("Ventas")
         self.btn_compras = QPushButton("Compras")
+        self.btn_buscar = QPushButton("Buscar Lámina")
 
     def layouts(self):
         """ Layouts que componen la aplicación. """
         # Layouts
-        self.main_layout = QHBoxLayout()
-        self.left_layout = QFormLayout()
-        self.right_main_layout = QVBoxLayout()
-        self.left_main_layout = QVBoxLayout()
-        self.right_top_layout = QHBoxLayout()
-        self.left_top_layout = QHBoxLayout()
-        self.right_bottom_layout = QHBoxLayout()
-        self.left_bottom_layout = QHBoxLayout()
+        # Main layouts
+        self.principal_layout = QVBoxLayout()
+        self.arriba_layout = QVBoxLayout()
+        self.abajo_layout = QFormLayout()
+        self.izquierda_layout = QHBoxLayout()
+        self.derecha_layout = QHBoxLayout()
+     
 
-        # Agregar los layouts hijos al layout padre
-        self.right_main_layout.addLayout(self.right_top_layout)
-        self.right_main_layout.addLayout(self.right_bottom_layout)
-        self.left_main_layout.addLayout(self.left_bottom_layout)
-        self.left_main_layout.addLayout(self.left_top_layout)
-        self.main_layout.addLayout(self.left_layout, 40)
-        self.main_layout.addLayout(self.right_main_layout, 60)
+        # Agregar los widgets (childrens) al main_layout
+        self.principal_layout.addLayout(self.arriba_layout)
+        #self.principal_layout.addLayout(self.abajo_layout)
+        self.principal_layout.addLayout(self.izquierda_layout)
+        self.principal_layout.addLayout(self.derecha_layout)
+
+        # Agregar los widgets al arriba_layout
+        self.arriba_layout.addWidget(self.title)
+        self.arriba_layout.addWidget(self.input_busqueda)
+        self.arriba_layout.addWidget(self.btn_buscar)
+
+        #Agregar los botones a izquierda_layout 
+        self.izquierda_layout.addWidget(self.btn_inventario)
+        self.izquierda_layout.addWidget(self.btn_compras)
+        self.izquierda_layout.addWidget(self.btn_ventas)
+
+        # Agregar el listado a derecha_layout
+        self.derecha_layout.addWidget(self.lista_producto)
+        
 
         # Agregar widgets a los layouts
-        self.right_top_layout.addWidget(self.lista_producto)
-        self.right_bottom_layout.addWidget(self.btn_inventario)
-        self.right_bottom_layout.addWidget(self.btn_ventas)
-        self.right_bottom_layout.addWidget(self.btn_compras)
+        #self.abajo_layout.addRow(self.btn_inventario,self.lista_producto)
+        #self.abajo_layout.addRow(self.btn_compras,self.btn_ventas)
+
 
         # Colocar el layout principal en la ventana principal
-        self.setLayout(self.main_layout)
+        self.setLayout(self.principal_layout)
 
 def main():
     app = QApplication(sys.argv)
