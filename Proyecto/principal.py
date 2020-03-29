@@ -10,7 +10,7 @@ import sys
 import os
 import sqlite3
 from sqlite3 import Error
-
+#from producto import ProductoDB
 
 
 class Main(QWidget):
@@ -23,7 +23,7 @@ class Main(QWidget):
         self.UI()
         self.show()
         # Crear o abrir la conexión a la base de datos
-        #self.employee_db = EmployeeDB("employee.db")
+        #self.producto_db = ProductoDB("laminas.db")
 
     def UI(self):
         """ Definimos los objetos que componen la interfaz de usuario. """
@@ -39,7 +39,7 @@ class Main(QWidget):
 
         self.lista_producto = QListWidget()
         self.btn_inventario = QPushButton("Inventario")
-        #self.btn_new.clicked.connect(self.add_employee)
+        self.btn_inventario.clicked.connect(self.add_producto)
         self.btn_ventas = QPushButton("Ventas")
         self.btn_compras = QPushButton("Compras")
         self.btn_buscar = QPushButton("Buscar Lámina")
@@ -82,6 +82,11 @@ class Main(QWidget):
 
         # Colocar el layout principal en la ventana principal
         self.setLayout(self.principal_layout)
+
+    def add_producto(self):
+        """ Inicia el formulario de ingreso de datos del empleado """
+        self.new_producto = AddProducto(self.producto_db)
+        self.close()
 
 def main():
     app = QApplication(sys.argv)
