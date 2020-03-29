@@ -33,7 +33,7 @@ class Main(QWidget):
     def main_desing(self):
         """ Diseño principal de la aplicación. """
 
-        self.title = QLabel("Buscar una Lamina Educativa : ")
+        self.title = QLabel("Buscar una Lámina Educativa : ")
         self.input_busqueda = QLineEdit()
         #self.image = QLabel()
 
