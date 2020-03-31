@@ -153,7 +153,7 @@ class AddProducto(QWidget):
         self.bottom_layout.addRow(self.label_descripcion, self.input_descripcion)
         self.bottom_layout.addRow(self.label_categoria, self.input_categoria)
         self.bottom_layout.addRow(self.label_proveedor, self.input_proveedor)
-       self.bottom_layout.addRow("", self.btn_agregarProducto ,self. btn_editarProducto, self.btn_eliminarProducto)
+        self.bottom_layout.addRow("", self.btn_agregarProducto ,self. btn_editarProducto, self.btn_eliminarProducto)
 
         # Establecer el layout principal de la ventana
         self.setLayout(self.main_layout)
