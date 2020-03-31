@@ -1,8 +1,8 @@
 # -*- coding: utf8 -*-
-# Programa: Inventario
+# Programa: Categoria Programa
 # Objetivo: 
-# Autor: Saudy Zavala 
-# Fecha: 26/marzo/2020
+# Autor: Fernando Martinez 
+# Fecha: 29/marzo/2020
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QPixmap, QFont
@@ -38,11 +38,11 @@ class Main(QWidget):
         self.btn_agregar = QPushButton("Agregar")
         self.btn_editar = QPushButton("Editar")
         self.btn_eliminar = QPushButton("Eliminar")
-        self.btn_buscar = QPushButton("Buscar")
-        self.label_id = QLabel("ID Categoria: ")
-        self.input_id = QLineEdit()
-        self.label_name = QLabel("Nombre: ")
-        self.input_name = QLineEdit()
+        self.btn_buscar = QPushButton("BUSCAR")
+        self.label_idCategoria = QLabel("ID Categoria: ")
+        self.input_idCategoria = QLineEdit()
+        self.label_tipoCategoria = QLabel("Tipo Categoria: ")
+        self.input_tipoCategoria = QLineEdit()
         self.label_descripcion = QLabel("Descripcion: ")
         self.input_descripcion = QLineEdit()
         self.label_vacia = QLabel(" ")
@@ -77,8 +77,8 @@ class Main(QWidget):
         self.right_top_layout.addRow("", self.label_vacia)
         self.right_top_layout.addRow("", self.label_vacia)
         self.right_top_layout.addRow("", self.label_vacia)
-        self.right_top_layout.addRow(self.label_id, self.input_id)
-        self.right_top_layout.addRow(self.label_name, self.input_name)
+        self.right_top_layout.addRow(self.label_idCategoria, self.input_idCategoria)
+        self.right_top_layout.addRow(self.label_tipoCategoria, self.input_tipoCategoria)
         self.right_top_layout.addRow(self.label_descripcion, self.input_descripcion)
         #self.right_top_layout.addRow(self.btn_agregar, self.btn_editar, self.btn_eliminar)
 
