@@ -22,7 +22,7 @@ class Main(QWidget):
         self.producto_db = ProductoDB("laminas.db")
 
         self.setWindowTitle("Pantalla Principal")
-        self.setGeometry(450, 150, 750, 600)
+        self.setGeometry(550, 150, 650, 600)
         self.UI()
         self.show()
        
@@ -59,6 +59,7 @@ class Main(QWidget):
 
         # Agregar los widgets (childrens) al main_layout
         self.principal_layout.addLayout(self.arriba_layout)
+
         #self.principal_layout.addLayout(self.abajo_layout)
         self.principal_layout.addLayout(self.izquierda_layout)
         self.principal_layout.addLayout(self.derecha_layout)
@@ -96,7 +97,7 @@ class Main(QWidget):
 
         if productos:
             for producto in productos:
-                self.producto_list.addItem(
+                self.lista_producto.addItem(
                     "{0} --- {1}".format(producto[1], producto[2]))
 
 class ProductoDB:
@@ -110,7 +111,7 @@ class ProductoDB:
                                     nombre text NOT NULL,
                                     descripcion text,
                                     categoria integer NOT NULL,
-                                    proveedor integr NOT NULL,
+                                    proveedor integer NOT NULL
                                   );
                                 """
         self.create_table(self.connection, self.producto_query)
@@ -150,10 +151,11 @@ class ProductoDB:
         """
         sqlInsert = """
                     INSERT INTO producto(
-                        id_producto, nombre, descripcion,
+                         nombre, descripcion,
                         categoria, proveedor)
-                     VALUES(?, ?, ?, ?, ?)
+                     VALUES(?, ?, ?, ?)
                     """
+
 
         try:
             cursor = self.connection.cursor()
@@ -165,8 +167,10 @@ class ProductoDB:
             print(e)
 
     def get_all_producto(self):
+        #ORDER BY ROWID ASC
         """ Obtiene todas las tuplas de la tabla producto """
-        sqlQuery = " SELECT * FROM producto ORDER BY ROWID ASC "
+
+        sqlQuery = " select * from producto  "
 
         try:
             cursor = self.connection.cursor()
@@ -225,7 +229,7 @@ class AddProducto(QWidget):
         self.input_proveedor.setPlaceholderText("00000")
 
         self.btn_agregarProducto = QPushButton("Agregar")
-        self.btn_agregarProducto.clicked.connect(self.insert
+        self.btn_agregarProducto.clicked.connect(self.insert)
 
         self.btn_editarProducto = QPushButton("Editar")
         #self.btn_editarProducto.clicked.connect(self.update_producto)
@@ -284,11 +288,11 @@ class AddProducto(QWidget):
     def insert(self):
         """ Insertar los valores del formulario a la tabla de producto """
         # Verificar si los valores requeridos fueron agregados
-        if (self.input_idProducto.text() or self.input_nombre.text() or
+        if (self.input_nombre.text() or
                 self.input_proveedor.text() or self.input_categoria.text() != ""):
-            producto = (self.input_idProducto.text(), self.input_nombre.text(),
+            producto = (self.input_nombre.text(),
                         self.input_descripcion.text(), self.input_categoria.text(),
-                        self.input_proveedor.toPlainText(), "")
+                        self.input_proveedor.text())
 
             try:
                 self.producto_db.add_producto(producto)
