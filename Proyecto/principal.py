@@ -31,6 +31,7 @@ class Main(QWidget):
         """ Definimos los objetos que componen la interfaz de usuario. """
         self.main_desing()
         self.layouts()
+        self.set_producto_list()
 
     def main_desing(self):
         """ Diseño principal de la aplicación. """
@@ -170,7 +171,7 @@ class ProductoDB:
         #ORDER BY ROWID ASC
         """ Obtiene todas las tuplas de la tabla producto """
 
-        sqlQuery = " select * from producto  "
+        sqlQuery = "select * from producto "
 
         try:
             cursor = self.connection.cursor()
