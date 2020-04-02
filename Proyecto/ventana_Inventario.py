@@ -12,14 +12,13 @@ import sqlite3
 from sqlite3 import Error
 from PIL import Image
 
-employee_id = None
-
 
 class Main(QWidget):
     """ Ventana principal de la Aplicación. """
 
     def __init__(self):
         super().__init__()
+        self.setWindowTitle("Ventana Inventario")
         self.setGeometry(450, 150, 750, 600)
         self.UI()
         self.show()
@@ -28,7 +27,6 @@ class Main(QWidget):
         """ Definimos los objetos que componen la interfaz de usuario. """
         self.main_desing()
         self.layouts()
-  
 
     def main_desing(self):
         """ Diseño principal de la aplicación. """
@@ -39,19 +37,22 @@ class Main(QWidget):
         self.btn_editar = QPushButton("Editar")
         self.btn_eliminar = QPushButton("Eliminar")
         self.btn_buscar = QPushButton("Buscar")
-        self.label_id = QLabel("ID Categoria: ")
+        self.label_id = QLabel("ID Producto: ")
         self.input_id = QLineEdit()
-        self.label_name = QLabel("Nombre: ")
-        self.input_name = QLineEdit()
-        self.label_descripcion = QLabel("Descripcion: ")
-        self.input_descripcion = QLineEdit()
+        self.label_notas = QLabel("Notas: ")
+        self.input_notas = QLineEdit()
+        self.label_precio_unitario = QLabel("Precio unitario: ")
+        self.input_precio_unitario = QLineEdit()
+        self.label_cantidad = QLabel("Cantidad: ")
+        self.input_cantidad = QLineEdit()
+        self.label_fecha_actualizacion = QLabel("Fecha de actualización : ")
+        self.input_fecha_actualizacion = QLineEdit()
         self.label_vacia = QLabel(" ")
 
     def layouts(self):
         """ Layouts que componen la aplicación. """
         # Layouts
         self.main_layout = QHBoxLayout()
-        self.left_layout = QFormLayout()
         self.right_main_layout = QVBoxLayout()
         self.right_top_layout =  QFormLayout()
         self.right_bottom_layout = QHBoxLayout()
@@ -61,7 +62,6 @@ class Main(QWidget):
         # Agregar los layouts hijos al layout padre
         self.right_main_layout.addLayout(self.right_top_layout)
         self.right_main_layout.addLayout(self.right_bottom_layout)
-        self.main_layout.addLayout(self.left_layout)
         self.main_layout.addLayout(self.right_main_layout)
         self.main_layout.addLayout(self.top_layout)
         self.main_layout.addLayout(self.left_bottom_layout)
@@ -78,8 +78,11 @@ class Main(QWidget):
         self.right_top_layout.addRow("", self.label_vacia)
         self.right_top_layout.addRow("", self.label_vacia)
         self.right_top_layout.addRow(self.label_id, self.input_id)
-        self.right_top_layout.addRow(self.label_name, self.input_name)
-        self.right_top_layout.addRow(self.label_descripcion, self.input_descripcion)
+        self.right_top_layout.addRow(self.label_notas, self.input_notas)
+        self.right_top_layout.addRow(self.label_precio_unitario, self.input_precio_unitario)
+        self.right_top_layout.addRow(self.label_cantidad, self.input_cantidad)
+        self.right_top_layout.addRow(self.label_fecha_actualizacion, self.input_fecha_actualizacion)
+
         #self.right_top_layout.addRow(self.btn_agregar, self.btn_editar, self.btn_eliminar)
 
 
