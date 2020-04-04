@@ -36,7 +36,7 @@ class Main(QWidget):
     def main_desing(self):
         """ Diseño principal de la aplicación. """
 
-        self.title = QLabel("Buscar una Lámina Educativa : ")
+        self.txtbuscar = QLabel("Buscar una Lámina Educativa : ")
         self.input_busqueda = QLineEdit()
         #self.image = QLabel()
 
@@ -46,6 +46,7 @@ class Main(QWidget):
         self.btn_ventas = QPushButton("Ventas")
         self.btn_compras = QPushButton("Compras")
         self.btn_buscar = QPushButton("Buscar Lámina")
+        self.btn_buscar.clicked.connect(self.set_Buscar_list)
 
     def layouts(self):
         """ Layouts que componen la aplicación. """
@@ -66,7 +67,7 @@ class Main(QWidget):
         self.principal_layout.addLayout(self.derecha_layout)
 
         # Agregar los widgets al arriba_layout
-        self.arriba_layout.addWidget(self.title)
+        self.arriba_layout.addWidget(self.txtbuscar)
         self.arriba_layout.addWidget(self.input_busqueda)
         self.arriba_layout.addWidget(self.btn_buscar)
 
@@ -95,6 +96,23 @@ class Main(QWidget):
     def set_producto_list(self):
         """ Obtiene las tuplas de empleados y las muestra en la lista """
         productos = self.producto_db.get_all_producto()
+
+        if productos:
+            for producto in productos:
+                self.lista_producto.addItem(
+                    "{0} --- {1}".format(producto[1], producto[2]))
+    
+    def set_Buscar_list(self):
+        """ Obtiene las tuplas de empleados y las muestra en la lista """
+       
+        print((self.input_busqueda.text()))
+        #if (self.txtbuscar.text==""):
+        #    print("Ingrese el nombre o descripcion para hacer la busqueda")
+        #else:
+        #    productos = self.producto_db.Busqueda(self.txtbuscar.text)
+        
+        productos = self.producto_db.Busqueda(self.input_busqueda.text())
+        
 
         if productos:
             for producto in productos:
@@ -168,15 +186,30 @@ class ProductoDB:
             print(e)
 
     def get_all_producto(self):
-        #ORDER BY ROWID ASC
         """ Obtiene todas las tuplas de la tabla producto """
 
-        sqlQuery = "select * from producto "
+        sqlQuery = "select * from producto ORDER BY ROWID ASC "
 
         try:
             cursor = self.connection.cursor()
             productos = cursor.execute(sqlQuery).fetchall()
 
+            return productos
+        except Error as e:
+            print(e)
+
+        return None
+
+    def Busqueda(self,id):
+        """ Obtiene todas las tuplas de la tabla producto que cumplan con la condicion en el campo nombre o descripción"""
+        
+        sqlQuery = "select * from producto where (nombre LIKE '%' || ? || '%' or descripcion LIKE '%' || ? || '%') "
+        print(id)
+        try:
+           
+            cursor = self.connection.cursor()
+            productos = cursor.execute(sqlQuery,(id,id,)).fetchall()
+            
             return productos
         except Error as e:
             print(e)
