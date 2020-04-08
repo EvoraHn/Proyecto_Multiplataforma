@@ -11,13 +11,17 @@ import os
 import sqlite3
 from sqlite3 import Error
 from PIL import Image
+#from Stock import ProductoDB
 
 
 class Main(QWidget):
     """ Ventana principal de la Aplicación. """
-
+       
     def __init__(self):
         super().__init__()
+        # Crear o abrir la conexión a la base de datos
+        self.producto_db = ProductoDB("laminas.db")
+
         self.setWindowTitle("Ventana Inventario")
         self.setGeometry(450, 150, 750, 600)
         self.UI()
@@ -89,7 +93,86 @@ class Main(QWidget):
         # Colocar el layout principal en la ventana principal
         self.setLayout(self.main_layout)
 
-   
+
+class ProductoDB:
+    """ Base de datos SQLite para los productos. """
+
+    def __init__(self, db_filename):
+        """ Inicializador de la clase """
+        self.connection = self.create_connection(db_filename)
+        self.producto_query = """ CREATE TABLE IF NOT EXISTS Stock (
+                                    id_producto integer,
+                                    Notas text NOT NULL,
+                                    Precio_unitario integer,
+                                    Cantidad integer NOT NULL,
+                                    Fecha_Actualizacion DATE NOT NULL,
+                                  );
+                                """
+        self.create_table(self.connection, self.producto_query)
+
+    def create_connection(self, db_filename):
+        """ Crear una conexión a la base de datos SQLite """
+        conn = None
+
+        # Tratar de conectarse con SQLite y crear la base de datos
+        try:
+            conn = sqlite3.connect(db_filename)
+            print("Conexión realizada. Versión {}".format(sqlite3.version))
+        except Error as e:
+            print(e)
+        finally:
+            return conn
+
+    def create_table(self, conn, query):
+        """
+        Crea una tabla basado en los valores de query.
+        :param conn: Conexión con la base de datos.
+        :param query: La instrucción CREATE TABLE.
+        :return:
+        """
+        try:
+            cursor = conn.cursor()
+            cursor.execute(query)
+        except Error as e:
+            print(e)
+
+    def add_producto(self, Stock):
+        """
+        Realiza una inserción a la tabla de empleados.
+        :param producto: Una estructura que contiene
+                         los datos del Stock.
+        :return:
+        """
+        sqlInsert = """
+                    INSERT INTO Stock(
+                        id_producto, Notas, Precio_unitario,
+                        Cantidad, Fecha_Actualizacion)
+                     VALUES(?, ?, ?, ?, ?)
+                    """
+
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(sqlInsert, Stock)
+            # Indicarle al motor de base de datos
+            # que los cambios sean persistentes
+            self.connection.commit()
+        except Error as e:
+            print(e)
+
+    def get_all_producto(self):
+        """ Obtiene todas las tuplas de la tabla producto """
+        sqlQuery = " SELECT * FROM producto ORDER BY ROWID ASC "
+
+        try:
+            cursor = self.connection.cursor()
+            productos = cursor.execute(sqlQuery).fetchall()
+
+            return productos
+        except Error as e:
+            print(e)
+
+        return None
+
 
 
 
