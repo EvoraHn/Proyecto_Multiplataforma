@@ -54,17 +54,20 @@ class Main(QWidget):
         # Main layouts
         self.principal_layout = QVBoxLayout()
         self.arriba_layout = QVBoxLayout()
-        self.abajo_layout = QFormLayout()
+        self.left_layout = QFormLayout()
+        self.abajo_layout = QVBoxLayout()
         self.izquierda_layout = QHBoxLayout()
         self.derecha_layout = QHBoxLayout()
      
 
         # Agregar los widgets (childrens) al main_layout
+        
         self.principal_layout.addLayout(self.arriba_layout)
 
         #self.principal_layout.addLayout(self.abajo_layout)
         self.principal_layout.addLayout(self.izquierda_layout)
         self.principal_layout.addLayout(self.derecha_layout)
+        self.principal_layout.addLayout(self.left_layout, 40)
 
         # Agregar los widgets al arriba_layout
         self.arriba_layout.addWidget(self.txtbuscar)
@@ -78,6 +81,7 @@ class Main(QWidget):
 
         # Agregar el listado a derecha_layout
         self.derecha_layout.addWidget(self.lista_producto)
+
         
 
         # Agregar widgets a los layouts
@@ -105,28 +109,33 @@ class Main(QWidget):
     def set_Buscar_list(self):
         """ Obtiene las tuplas de empleados y las muestra en la lista """
        
-        print((self.input_busqueda.text()))
-        #if (self.txtbuscar.text==""):
-        #    print("Ingrese el nombre o descripcion para hacer la busqueda")
-        #else:
-        #    productos = self.producto_db.Busqueda(self.txtbuscar.text)
+        #print((self.input_busqueda.text()))
+        if (self.input_busqueda.text()==""):
+            print("<ERROR> Ingrese el nombre o descripcion para hacer la busqueda <ERROR>")
+        else:
+            productos = self.producto_db.Busqueda(self.input_busqueda.text())
         
-        productos = self.producto_db.Busqueda(self.input_busqueda.text())
+        #productos = self.producto_db.Busqueda(self.input_busqueda.text())
         
 
         if productos:
+            #limpia la lista y muestra los productos que cumplan con la condición
+            self.lista_producto.clear()
+            
             for producto in productos:
                 self.lista_producto.addItem(
-                    "{0} --- {1}".format(producto[1], producto[2]))
+                    "{0} <-> {1} <-> {2}".format(producto[1], producto[2], producto[3]))
 
 class ProductoDB:
     """ Base de datos SQLite para los productos. """
 
     def __init__(self, db_filename):
         """ Inicializador de la clase """
+        
         self.connection = self.create_connection(db_filename)
         self.producto_query = """ CREATE TABLE IF NOT EXISTS producto (
-                                    id_producto integer PRIMARY KEY,
+                                    id_producto integer UNIQUE PRIMARY KEY,
+                                    codigo text UNIQUE NOT NULL,
                                     nombre text NOT NULL,
                                     descripcion text,
                                     categoria integer NOT NULL,
@@ -134,6 +143,7 @@ class ProductoDB:
                                   );
                                 """
         self.create_table(self.connection, self.producto_query)
+        
 
     def create_connection(self, db_filename):
         """ Crear una conexión a la base de datos SQLite """
@@ -163,19 +173,17 @@ class ProductoDB:
 
     def add_producto(self, producto):
         """
-        Realiza una inserción a la tabla de empleados.
+        Realiza una inserción a la tabla de producto.
         :param producto: Una estructura que contiene
                          los datos del producto.
         :return:
         """
         sqlInsert = """
                     INSERT INTO producto(
-                         nombre, descripcion,
+                         nombre,codigo, descripcion,
                         categoria, proveedor)
-                     VALUES(?, ?, ?, ?)
+                     VALUES(?, ?, ?, ?,?)
                     """
-
-
         try:
             cursor = self.connection.cursor()
             cursor.execute(sqlInsert, producto)
@@ -184,6 +192,50 @@ class ProductoDB:
             self.connection.commit()
         except Error as e:
             print(e)
+        
+    def update_producto(self, producto,id):
+        """
+        Realiza una modificación a la tabla de producto.
+        :param producto: Una estructura que contiene
+                         los datos del producto.
+        :return:
+        """
+        sqlUpdate = """
+                    UPDATE INTO producto(
+                         nombre,codigo,descripcion,
+                        categoria, proveedor) WHERE id_producto = ?
+                     VALUES(?, ?, ?, ?,?)
+                    """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(sqlUpdate,id,producto)
+            # Indicarle al motor de base de datos
+            # que los cambios sean persistentes
+            self.connection.commit()
+        except Error as e:
+            print(e)
+
+    def delete_producto(self,codigo):
+        """
+        Realiza una eliminación a la tabla de producto.
+        :param id: identificador para la tupla
+        :return:
+        """
+        #QMessageBox.information("ESTE ES EL CODIGO",str(codigo))
+        sqlDelete = """
+                    delete from producto where id_producto = ?
+                    """
+        try:
+           
+            cursor = self.connection.cursor()
+            cursor.execute(sqlDelete,(codigo,))
+            self.connection.commit()
+            return True
+        except Error as e:
+            print(e)
+
+        return None
+        
 
     def get_all_producto(self):
         """ Obtiene todas las tuplas de la tabla producto """
@@ -195,6 +247,26 @@ class ProductoDB:
             productos = cursor.execute(sqlQuery).fetchall()
 
             return productos
+        except Error as e:
+            print(e)
+
+        return None
+
+    def Obtener_Producto(self, id):
+        """
+        Busca un producto mediante el valor del Código.
+
+        param: Code: Codigo unico para identificar cada lámina.
+        :return: Un arreglo con los atributos del producto.
+        """
+        sqlQuery = " SELECT * FROM producto WHERE codigo = ?"
+
+        try:
+            cursor = self.connection.cursor()
+            # fetchone espera que se retorne una tupla (1,)
+            producto = cursor.execute(sqlQuery, (id,)).fetchone()
+
+            return producto
         except Error as e:
             print(e)
 
@@ -222,9 +294,10 @@ class AddProducto(QWidget):
     def __init__(self, producto_db):
         super().__init__()
         # Conexión a la base de datos
+        
         self.producto_db = producto_db
         self.setWindowTitle("Agregar un producto")
-        self.setGeometry(450, 150, 750, 600)
+        self.setGeometry(150, 50, 750, 600)
         self.UI()
         self.show()
 
@@ -232,9 +305,12 @@ class AddProducto(QWidget):
         """ Cargar los layouts de diseño de la ventana """
         self.mainDesing()
         self.layouts()
+        self.set_producto_list()
 
     def mainDesing(self):
         """ Crear los widgets que conforman la interfaz """
+        self.product_list = QListWidget()
+        self.product_list.itemClicked.connect(self.Mostrar_Producto)
         # Top Layout Widgets
         self.title = QLabel("Agregar producto ")
         self.image = QLabel()
@@ -245,7 +321,12 @@ class AddProducto(QWidget):
         self.label_idProducto= QLabel("Id Producto: ")
         self.input_idProducto = QLineEdit()
         self.input_idProducto.setPlaceholderText("00000000")
+        self.input_idProducto.setReadOnly(True)
         #termina label y textbox 
+        self.label_codigo= QLabel("Código: ")
+        self.input_codigo = QLineEdit()
+        self.input_codigo.setPlaceholderText("CS 0000")
+
         self.label_nombre= QLabel("Nombre : ")
         self.input_nombre = QLineEdit()
         self.input_nombre.setPlaceholderText("Lámina Educativa")
@@ -269,7 +350,7 @@ class AddProducto(QWidget):
         #self.btn_editarProducto.clicked.connect(self.update_producto)
 
         self.btn_eliminarProducto = QPushButton("Eliminar")
-        #self.btn_eliminarProducto.clicked.connect(self.delete_producto)
+        self.btn_eliminarProducto.clicked.connect(self.delete)
 
     def layouts(self):
         """ Define la estructura de los elementos en pantalla """
@@ -277,10 +358,14 @@ class AddProducto(QWidget):
         self.main_layout = QVBoxLayout()
         self.top_layout = QVBoxLayout()
         self.bottom_layout = QFormLayout()
+        self.left_layout = QFormLayout()
+        self.botones_layout = QHBoxLayout()
 
         # Agregar los widgets (childrens) al main_layout
         self.main_layout.addLayout(self.top_layout)
         self.main_layout.addLayout(self.bottom_layout)
+        self.main_layout.addLayout(self.botones_layout)
+        self.main_layout.addLayout(self.left_layout, 40)
 
         # Agregar los widgets al top layout
         #self.top_layout.addWidget(self.title)
@@ -288,13 +373,16 @@ class AddProducto(QWidget):
 
         # Agregar los widgets al bottom layout
         self.bottom_layout.addRow(self.label_idProducto, self.input_idProducto)
+        self.bottom_layout.addRow(self.label_codigo, self.input_codigo)
         self.bottom_layout.addRow(self.label_nombre, self.input_nombre)
         self.bottom_layout.addRow(self.label_descripcion, self.input_descripcion)
         self.bottom_layout.addRow(self.label_categoria, self.input_categoria)
         self.bottom_layout.addRow(self.label_proveedor, self.input_proveedor)
-        self.bottom_layout.addWidget(self.btn_agregarProducto)
-        self.bottom_layout.addWidget(self.btn_editarProducto)
-        self.bottom_layout.addWidget(self.btn_eliminarProducto)
+        self.bottom_layout.addWidget(self.product_list)
+        #self.botones_layout.addWidget("")
+        self.botones_layout.addWidget(self.btn_agregarProducto)
+        self.botones_layout.addWidget(self.btn_editarProducto)
+        self.botones_layout.addWidget(self.btn_eliminarProducto)
                 
 
         
@@ -319,12 +407,41 @@ class AddProducto(QWidget):
             image = image.resize(size)
             image.save(f"images/{self.fullpath}")
 
+    def delete(self):
+        """Elimina Una tupla, previamente seleccionada en el datagrid (lista)"""
+        if self.product_list.selectedItems():
+            producto = self.product_list.currentItem().text()
+            id = producto.split(" --- ")[0]
+            producto = self.producto_db.Obtener_Producto(id)
+            yes = QMessageBox.Yes
+
+            if producto:
+                question_text = f"¿Está seguro de eliminar el producto {producto[1]}?"
+                question = QMessageBox.question(self, "Advertencia", question_text,
+                    QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+               
+
+                if question == QMessageBox.Yes:
+                    self.producto_db.delete_producto(producto[0])
+                    self.product_list.clear()
+                    self.set_producto_list()
+                    self.limpiar()
+                    QMessageBox.information(self, "Información", "¡Producto eliminado satisfactoriamente!")
+                    
+
+            else:
+                QMessageBox.information(self, "Advertencia", "Ha ocurrido un error. Reintente nuevamente")
+
+        else:
+            QMessageBox.information(self, "Advertencia", "Favor seleccionar un Producto a eliminar")
+
     def insert(self):
         """ Insertar los valores del formulario a la tabla de producto """
         # Verificar si los valores requeridos fueron agregados
         if (self.input_nombre.text() or
-                self.input_proveedor.text() or self.input_categoria.text() != ""):
-            producto = (self.input_nombre.text(),
+                self.input_proveedor.text() or self.input_categoria.text()
+                 or self.input_codigo.text() != ""):
+            producto = (self.input_nombre.text(),self.input_codigo.text(),
                         self.input_descripcion.text(), self.input_categoria.text(),
                         self.input_proveedor.text())
 
@@ -341,9 +458,137 @@ class AddProducto(QWidget):
             QMessageBox.information(
                 self, "Advertencia", "Debes ingresar toda la información")
 
+    def update(self,identificador):
+        """ Editar los valores del formulario a la tabla de producto """
+        # Verificar si los valores requeridos fueron agregados
+        if (self.input_nombre.text() or
+                self.input_proveedor.text() or self.input_categoria.text()
+                 or self.input_codigo.text() or self.input_nombre.text() != ""):
+
+            producto = (self.input_nombre.text(),self.input_codigo.text(),
+                        self.input_descripcion.text(), self.input_categoria.text(),
+                        self.input_proveedor.text())
+
+            try:
+                
+                self.producto_db.update_producto(producto,identificador)
+                QMessageBox.information(
+                    self, "Información", "producto modificado correctamente")
+                
+            except Error as e:
+                QMessageBox.information(
+                    self, "Error", "Error al momento de editar el producto")
+        else:
+            QMessageBox.information(
+                self, "Advertencia", "Debes ingresar toda la información")
+
+    def Habilitar_edicion():
+        if self.product_list.selectedItems():
+            producto = self.product_list.currentItem().text()
+            id = producto.split(" --- ")[0]
+            producto = self.producto_db.Obtener_Producto(id)
+            yes = QMessageBox.Yes
+
+            if producto:
+                
+                question_text = f"¿Está seguro de editar el producto {producto[1]}?"
+                question = QMessageBox.question(self, "Advertencia", question_text,
+                    QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+               
+
+                if question == QMessageBox.Yes:
+                    self.producto_db.update(producto[0])
+                    self.product_list.clear()
+                    self.set_producto_list()
+                    self.limpiar()
+                    QMessageBox.information(self, "Información", "¡Producto eliminado satisfactoriamente!")
+                    
+
+            else:
+                QMessageBox.information(self, "Advertencia", "Ha ocurrido un error. Reintente nuevamente")
+
+        else:
+            QMessageBox.information(self, "Advertencia", "Favor seleccionar un Producto a eliminar")
 
 
 
+    def get_all_producto(self):
+        """ Obtiene todas las tuplas de la tabla producto """
+
+        sqlQuery = "select * from producto ORDER BY ROWID ASC "
+
+        try:
+            cursor = self.connection.cursor()
+            productos = cursor.execute(sqlQuery).fetchall()
+
+            return productos
+        except Error as e:
+            print(e)
+
+        return None
+
+    def Bloquear_Inputs(self,estado):
+        """Deshabilita los QwidgetsInputs para solo dejarlos
+         en modo lectura.
+         
+         parametro estado: recibe True o false para habilitar o no 
+         los textbox (inputs) """
+
+        self.input_idProducto.setReadOnly(estado)
+        self.input_codigo.setReadOnly(estado)
+        self.input_nombre.setReadOnly(estado)
+        self.input_descripcion.setReadOnly(estado)
+        self.input_proveedor.setReadOnly(estado)
+        self.input_categoria.setReadOnly(estado)
+
+    def set_producto_list(self):
+        """ Obtiene las tuplas de Productos y las muestra en la lista """
+        productos = self.producto_db.get_all_producto()
+
+        if productos:
+            for producto in productos:
+                self.product_list.addItem(
+                    "{0} --- {1}".format(producto[1], producto[2]))
+
+    def Mostrar_Producto(self):
+        """ Muestra los atributos del producto que se encuentra seleccionado """
+        producto = self.product_list.currentItem().text()
+        id = producto.split(" --- ")[0]
+
+        producto = self.producto_db.Obtener_Producto(id)
+        
+        if producto:
+            #se deshabilitan los textbox
+            #Bloquear_Inputs(True)
+            self.input_idProducto.setReadOnly(True)
+            self.input_codigo.setReadOnly(True)
+            self.input_nombre.setReadOnly(True)
+            self.input_descripcion.setReadOnly(True)
+            self.input_proveedor.setReadOnly(True)
+            self.input_categoria.setReadOnly(True)
+            #se le asignan valores a las variables
+            id_producto =  producto[0]
+            codigo =  producto[1]
+            nombre =  producto[2]
+            descripcion =  producto[3]
+            proveedor =  producto[4]
+            categoria =  producto[5]
+            #se muestran los valores en los text
+            self.input_idProducto.setText((str(id_producto)))
+            self.input_codigo.setText((str(codigo)))
+            self.input_nombre.setText((str(nombre)))
+            self.input_descripcion.setText((str(descripcion)))
+            self.input_proveedor.setText((str(proveedor)))
+            self.input_categoria.setText((str(categoria)))
+
+    def limpiar(self):
+        self.input_idProducto.setText("")
+        self.input_codigo.setText("")
+        self.input_nombre.setText("")
+        self.input_categoria.setText("")
+        self.input_proveedor.setText("")
+        self.input_descripcion.setText("")
+    
 
 def main():
     app = QApplication(sys.argv)
