@@ -3,7 +3,7 @@
 # Objetivo: Organizar laminas educativas
 # Autor: Grupo BPB
 # Fecha: 24/marzo/2020
-
+from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QPixmap, QFont
 import sys
@@ -193,7 +193,7 @@ class ProductoDB:
         except Error as e:
             print(e)
         
-    def update_producto(self, producto,id):
+    def update_producto(self,productos):
         """
         Realiza una modificación a la tabla de producto.
         :param producto: Una estructura que contiene
@@ -201,14 +201,15 @@ class ProductoDB:
         :return:
         """
         sqlUpdate = """
-                    UPDATE INTO producto(
-                         nombre,codigo,descripcion,
-                        categoria, proveedor) WHERE id_producto = ?
-                     VALUES(?, ?, ?, ?,?)
+                    UPDATE producto
+                        SET codigo = ?,nombre = ?,descripcion = ?
+                        ,categoria = ?,proveedor = ?
+                        WHERE id_producto = ?
+                        
                     """
         try:
             cursor = self.connection.cursor()
-            cursor.execute(sqlUpdate,id,producto)
+            cursor.execute(sqlUpdate,productos)
             # Indicarle al motor de base de datos
             # que los cambios sean persistentes
             self.connection.commit()
@@ -273,9 +274,11 @@ class ProductoDB:
         return None
 
     def Busqueda(self,id):
-        """ Obtiene todas las tuplas de la tabla producto que cumplan con la condicion en el campo nombre o descripción"""
+        """ Obtiene todas las tuplas de la tabla producto que cumplan
+         con la condicion en el campo nombre o descripción"""
         
-        sqlQuery = "select * from producto where (nombre LIKE '%' || ? || '%' or descripcion LIKE '%' || ? || '%') "
+        sqlQuery = """select * from producto where (nombre LIKE '%'
+                    || ? || '%' or descripcion LIKE '%' || ? || '%') """
         print(id)
         try:
            
@@ -347,10 +350,17 @@ class AddProducto(QWidget):
         self.btn_agregarProducto.clicked.connect(self.insert)
 
         self.btn_editarProducto = QPushButton("Editar")
-        #self.btn_editarProducto.clicked.connect(self.update_producto)
+        self.btn_editarProducto.clicked.connect(self.Habilitar_edicion)
+        #self.btn_editarProducto.hide()
 
         self.btn_eliminarProducto = QPushButton("Eliminar")
         self.btn_eliminarProducto.clicked.connect(self.delete)
+
+        self.btn_Aceptar = QPushButton("Aceptar")
+        self.btn_Aceptar.clicked.connect(self.aceptar_edicion)
+        self.btn_cancelar = QPushButton("Cancelar")
+        self.btn_cancelar.clicked.connect(self.cancelar_edicion)
+        
 
     def layouts(self):
         """ Define la estructura de los elementos en pantalla """
@@ -365,7 +375,7 @@ class AddProducto(QWidget):
         self.main_layout.addLayout(self.top_layout)
         self.main_layout.addLayout(self.bottom_layout)
         self.main_layout.addLayout(self.botones_layout)
-        self.main_layout.addLayout(self.left_layout, 40)
+        #self.main_layout.addLayout(self.left_layout, 40)
 
         # Agregar los widgets al top layout
         #self.top_layout.addWidget(self.title)
@@ -383,6 +393,10 @@ class AddProducto(QWidget):
         self.botones_layout.addWidget(self.btn_agregarProducto)
         self.botones_layout.addWidget(self.btn_editarProducto)
         self.botones_layout.addWidget(self.btn_eliminarProducto)
+        self.botones_layout.addWidget(self.btn_Aceptar)
+        self.btn_cancelar.hide()
+        self.btn_Aceptar.hide()
+        self.botones_layout.addWidget(self.btn_cancelar)
                 
 
         
@@ -467,11 +481,11 @@ class AddProducto(QWidget):
 
             producto = (self.input_nombre.text(),self.input_codigo.text(),
                         self.input_descripcion.text(), self.input_categoria.text(),
-                        self.input_proveedor.text())
+                        self.input_proveedor.text(),self.input_idProducto.text())
 
             try:
                 
-                self.producto_db.update_producto(producto,identificador)
+                self.producto_db.update_producto(producto)
                 QMessageBox.information(
                     self, "Información", "producto modificado correctamente")
                 
@@ -482,7 +496,9 @@ class AddProducto(QWidget):
             QMessageBox.information(
                 self, "Advertencia", "Debes ingresar toda la información")
 
-    def Habilitar_edicion():
+
+    def Habilitar_edicion(self):
+        """verifica que tenga seleccionado un producto y habilita los txt"""
         if self.product_list.selectedItems():
             producto = self.product_list.currentItem().text()
             id = producto.split(" --- ")[0]
@@ -490,27 +506,54 @@ class AddProducto(QWidget):
             yes = QMessageBox.Yes
 
             if producto:
-                
+
                 question_text = f"¿Está seguro de editar el producto {producto[1]}?"
                 question = QMessageBox.question(self, "Advertencia", question_text,
                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
                
 
                 if question == QMessageBox.Yes:
-                    self.producto_db.update(producto[0])
-                    self.product_list.clear()
-                    self.set_producto_list()
-                    self.limpiar()
-                    QMessageBox.information(self, "Información", "¡Producto eliminado satisfactoriamente!")
-                    
-
+                    self.btn_editarProducto.hide()
+                    self.btn_agregarProducto.hide()
+                    self.btn_eliminarProducto.hide()
+                    self.Bloquear_Inputs(False)
+                    self.btn_Aceptar.show()
+                    self.btn_cancelar.show()
             else:
                 QMessageBox.information(self, "Advertencia", "Ha ocurrido un error. Reintente nuevamente")
 
         else:
-            QMessageBox.information(self, "Advertencia", "Favor seleccionar un Producto a eliminar")
+            QMessageBox.information(self, "Advertencia", "Favor seleccionar un Producto a editar")
+
+    def aceptar_edicion(self):
+        """Edita los parametros que han cambiado en los textbox"""
+        if self.product_list.selectedItems():
+            producto = self.product_list.currentItem().text()
+            id = producto.split(" --- ")[0]
+            producto = self.producto_db.Obtener_Producto(id)
+            if producto:
+                self.update(producto[0])
+                
+                self.product_list.clear()
+                self.set_producto_list()
+                self.limpiar()
+            else:
+                QMessageBox.information(self, "Advertencia", "Ha ocurrido un error. Reintente nuevamente")
+        else:
+            QMessageBox.information(self, "Advertencia", "Favor seleccionar un Producto a editar")
 
 
+    def cancelar_edicion(self):
+        """Cancela la edicion y envia al usuario a la ventana Principal"""
+        self.product_list.clear()
+        self.set_producto_list()
+        self.limpiar()
+        self.Bloquear_Inputs(False)
+        self.btn_editarProducto.show()
+        self.btn_agregarProducto.show()
+        self.btn_eliminarProducto.show()
+        self.btn_Aceptar.hide()
+        self.btn_cancelar.hide()
 
     def get_all_producto(self):
         """ Obtiene todas las tuplas de la tabla producto """
@@ -534,7 +577,7 @@ class AddProducto(QWidget):
          parametro estado: recibe True o false para habilitar o no 
          los textbox (inputs) """
 
-        self.input_idProducto.setReadOnly(estado)
+        #self.input_idProducto.setReadOnly(estado)
         self.input_codigo.setReadOnly(estado)
         self.input_nombre.setReadOnly(estado)
         self.input_descripcion.setReadOnly(estado)
@@ -559,14 +602,7 @@ class AddProducto(QWidget):
         
         if producto:
             #se deshabilitan los textbox
-            #Bloquear_Inputs(True)
-            self.input_idProducto.setReadOnly(True)
-            self.input_codigo.setReadOnly(True)
-            self.input_nombre.setReadOnly(True)
-            self.input_descripcion.setReadOnly(True)
-            self.input_proveedor.setReadOnly(True)
-            self.input_categoria.setReadOnly(True)
-            #se le asignan valores a las variables
+            self.Bloquear_Inputs(True)
             id_producto =  producto[0]
             codigo =  producto[1]
             nombre =  producto[2]
@@ -595,6 +631,12 @@ def main():
     window = Main()
     sys.exit(app.exec_())
 
+def Hels():
+    app = QApplication(sys.argv)
+    window = AddProducto()
+    sys.exit(app.exec_())
+
 
 if __name__ == "__main__":
     main()
+Hels()
