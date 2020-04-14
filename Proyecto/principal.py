@@ -144,6 +144,25 @@ class ProductoDB:
                                 """
         self.create_table(self.connection, self.producto_query)
         
+        
+    def crear_vista_principal(self):
+        """Genera la vista para el menú Principal"""
+        self.vista_Principal_Query = """CREATE VIEW IF NOT EXIST vista_principal as 
+        Select
+            p.id_producto,
+            p.codigo,
+            p.nombre,
+            s.Cantidad,
+            pr.nombre_proveedor,
+            c.nombre_categoria
+        from 
+            producto p
+            INNER JOIN Categoria c ON s.idCategoria = p.categoria
+            INNER JOIN proveedor pr ON idProveedor = P.proveedor
+            INNER JOIN stock s ON p.id_producto = s.id_producto
+
+            """
+
 
     def create_connection(self, db_filename):
         """ Crear una conexión a la base de datos SQLite """
@@ -360,6 +379,9 @@ class AddProducto(QWidget):
         self.btn_Aceptar.clicked.connect(self.aceptar_edicion)
         self.btn_cancelar = QPushButton("Cancelar")
         self.btn_cancelar.clicked.connect(self.cancelar_edicion)
+
+        self.btn_Volver = QPushButton("↢⁂ Volver al Formulario Principal ⁂↣  ")
+        self.btn_Volver.clicked.connect(self.volver)
         
 
     def layouts(self):
@@ -382,6 +404,7 @@ class AddProducto(QWidget):
         #self.top_layout.addWidget(self.image)
 
         # Agregar los widgets al bottom layout
+        self.bottom_layout.addRow(self.btn_Volver)
         self.bottom_layout.addRow(self.label_idProducto, self.input_idProducto)
         self.bottom_layout.addRow(self.label_codigo, self.input_codigo)
         self.bottom_layout.addRow(self.label_nombre, self.input_nombre)
@@ -398,10 +421,6 @@ class AddProducto(QWidget):
         self.btn_Aceptar.hide()
         self.botones_layout.addWidget(self.btn_cancelar)
                 
-
-        
-
-
         # Establecer el layout principal de la ventana
         self.setLayout(self.main_layout)
 
@@ -420,6 +439,11 @@ class AddProducto(QWidget):
             image = Image.open(self.filename)
             image = image.resize(size)
             image.save(f"images/{self.fullpath}")
+
+    def volver(self):
+        """Manda al usuario al menu Principal"""
+        self.close()
+        self.main = Main()
 
     def delete(self):
         """Elimina Una tupla, previamente seleccionada en el datagrid (lista)"""
@@ -463,8 +487,11 @@ class AddProducto(QWidget):
                 self.producto_db.add_producto(producto)
                 QMessageBox.information(
                     self, "Información", "producto agregado correctamente")
-                self.close()
-                self.main = Main()
+                self.product_list.clear()
+                self.set_producto_list()
+                self.limpiar()
+                #self.close()
+                #self.main = Main()
             except Error as e:
                 QMessageBox.information(
                     self, "Error", "Error al momento de agregar el producto")
