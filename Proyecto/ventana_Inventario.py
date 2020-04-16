@@ -36,21 +36,35 @@ class Main(QWidget):
         """ Diseño principal de la aplicación. """
         self.label_buscar = QLabel("Buscar: ")
         self.input_buscar = QLineEdit()
+
         self.inventario_list = QListWidget()
+        self.inventario_list.itemClicked.connect(self.Mostrar_Producto)
+
         self.btn_agregar = QPushButton("Agregar")
+        self.btn_agregar.clicked.connect(self.insert)
+
         self.btn_editar = QPushButton("Editar")
+
         self.btn_eliminar = QPushButton("Eliminar")
+        self.btn_eliminar.clicked.connect(self.delete)
+
         self.btn_buscar = QPushButton("Buscar")
+
         self.label_id = QLabel("ID Producto: ")
         self.input_id = QLineEdit()
+
         self.label_notas = QLabel("Notas: ")
         self.input_notas = QLineEdit()
+
         self.label_precio_unitario = QLabel("Precio unitario: ")
         self.input_precio_unitario = QLineEdit()
+
         self.label_cantidad = QLabel("Cantidad: ")
         self.input_cantidad = QLineEdit()
+
         self.label_fecha_actualizacion = QLabel("Fecha de actualización : ")
         self.input_fecha_actualizacion = QLineEdit()
+
         self.label_vacia = QLabel(" ")
 
     def layouts(self):
@@ -93,6 +107,98 @@ class Main(QWidget):
         # Colocar el layout principal en la ventana principal
         self.setLayout(self.main_layout)
 
+    def delete(self):
+        """Elimina Una tupla, previamente seleccionada en el datagrid (lista)"""
+        if self.inventario_list.selectedItems():
+            stock = self.inventario_list.currentItem().text()
+            id = stock.split(" --- ")[0]
+            stock = self.producto_db. Obtener_Stock(id)
+            yes = QMessageBox.Yes
+
+            if stock:
+                question_text = f"¿Está seguro de eliminar el producto {stock[1]}?"
+                question = QMessageBox.question(self, "Advertencia", question_text,
+                    QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+               
+
+                if question == QMessageBox.Yes:
+                    self.producto_db.delete_producto(stock[0])
+                    self.inventario_list.clear()
+                    self.set_inventario_list()
+                    self.limpiar()
+                    QMessageBox.information(self, "Información", "¡Producto eliminado satisfactoriamente!")
+                    
+
+            else:
+                QMessageBox.information(self, "Advertencia", "Ha ocurrido un error. Reintente nuevamente")
+
+        else:
+            QMessageBox.information(self, "Advertencia", "Favor seleccionar un Producto a eliminar")
+
+
+    def insert(self):
+        """ Insertar los valores del formulario a la tabla de Stock """
+        # Verificar si los valores requeridos fueron agregados
+        if (self.input_id.text() or
+                self.input_notas.text() or
+                self.input_precio_unitario.text() or 
+                 self.input_cantidad or self.input_fecha_actualizacion != ""):
+            Stock = (self.input_id.text(),self.input_notas.text(),
+                      self.input_precio_unitario.text(),
+                       self.input_cantidad.text(),self.input_fecha_actualizacion.text())
+
+            try:
+                self.producto_db.add_Stock(Stock)
+                QMessageBox.information(
+                self, "Información", "inventario agregado correctamente")
+                self.inventario_list.clear()
+                self.set_Stock_list()
+                self.limpiar()
+                #self.close()
+                #self.main = Main()
+            except Error as e:
+                QMessageBox.information(
+                    self, "Error", "Error al momento de agregar el producto")
+        else:
+            QMessageBox.information(
+                self, "Advertencia", "Debes ingresar toda la información")
+
+    
+    
+    def Mostrar_Producto(self):
+        """ Muestra los atributos del producto que se encuentra seleccionado """
+        Stock = self.inventario_list.currentItem().text()
+        id = Stock.split(" --- ")[0]
+
+        Stock = self.producto_db.Obtener_Producto(id)
+        
+        if Stock:
+            #se deshabilitan los textbox
+            self.Bloquear_Inputs(True)
+            id_producto =  Stock[0]
+            notas =  Stock[1]
+            precio_unitario =  Stock[2]
+            cantidad =  Stock[3]
+            fecha_actualizacion =  Stock[4]
+            
+
+            #se muestran los valores en los text
+            self.input_id.setText((str(id_producto)))
+            self.input_notas .setText((str(notas)))
+            self.input_precio_unitario .setText((str(precio_unitario)))
+            self.input_cantidad .setText((str(cantidad)))
+            self.input_fecha_actualizacion .setText((str(fecha_actualizacion)))
+            
+
+    def limpiar(self):
+        self.input_id.setText("")
+        self.input_notas.setText("")
+        self.input_precio_unitario .setText("")
+        self.input_cantidad.setText("")
+        self.input_fecha_actualizacion.setText("")
+
+
+
 
 class ProductoDB:
     """ Base de datos SQLite para los productos. """
@@ -100,15 +206,17 @@ class ProductoDB:
     def __init__(self, db_filename):
         """ Inicializador de la clase """
         self.connection = self.create_connection(db_filename)
-        self.producto_query = """ CREATE TABLE IF NOT EXISTS Stock (
+        self.Stock_query = """ CREATE TABLE IF NOT EXISTS Stock (
+                                    id_stock integer PRIMARY KEY autoincrement,
                                     id_producto integer,
                                     Notas text NOT NULL,
                                     Precio_unitario integer,
                                     Cantidad integer NOT NULL,
-                                    Fecha_Actualizacion DATE NOT NULL,
+                                    Fecha_Actualizacion DATETIME,
+                                    foreign key(id_producto) references producto(id_producto)
                                   );
                                 """
-        self.create_table(self.connection, self.producto_query)
+        self.create_table(self.connection, self.Stock_query)
 
     def create_connection(self, db_filename):
         """ Crear una conexión a la base de datos SQLite """
@@ -136,7 +244,7 @@ class ProductoDB:
         except Error as e:
             print(e)
 
-    def add_producto(self, Stock):
+    def add_Stock(self, Stock):
         """
         Realiza una inserción a la tabla de empleados.
         :param producto: Una estructura que contiene
@@ -159,9 +267,52 @@ class ProductoDB:
         except Error as e:
             print(e)
 
-    def get_all_producto(self):
+    def update_Stock(self,productos):
+        """
+        Realiza una modificación a la tabla de Stock.
+        :param producto: Una estructura que contiene
+                         los datos del producto.
+        :return:
+        """
+        sqlUpdate = """
+                    UPDATE producto
+                        SET = id_producto?,Notas = ?,Precio_unitario = ?
+                        ,Cantidad = ?,Fecha_Actualizacion = ?
+                    """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(sqlUpdate,productos)
+            # Indicarle al motor de base de datos
+            # que los cambios sean persistentes
+            self.connection.commit()
+        except Error as e:
+            print(e)
+
+    def delete_Stock(self,codigo):
+        """
+        Realiza una eliminación a la tabla de producto.
+        :param id: identificador para la tupla
+        :return:
+        """
+        #QMessageBox.information("ESTE ES EL CODIGO",str(codigo))
+        sqlDelete = """
+                    delete from producto where id_producto = ?
+                    """
+        try:
+           
+            cursor = self.connection.cursor()
+            cursor.execute(sqlDelete,(codigo,))
+            self.connection.commit()
+            return True
+        except Error as e:
+            print(e)
+
+        return None
+
+
+    def get_all_Stock(self):
         """ Obtiene todas las tuplas de la tabla producto """
-        sqlQuery = " SELECT * FROM producto ORDER BY ROWID ASC "
+        sqlQuery = " SELECT * FROM  Stock ORDER BY ROWID ASC "
 
         try:
             cursor = self.connection.cursor()
@@ -172,6 +323,8 @@ class ProductoDB:
             print(e)
 
         return None
+
+    
 
 
 
