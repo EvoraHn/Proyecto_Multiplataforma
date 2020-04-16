@@ -1,0 +1,1 @@
+self.btn_eliminarProducto.clicked.connect(self.delete)

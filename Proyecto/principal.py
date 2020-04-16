@@ -382,6 +382,15 @@ class AddProducto(QWidget):
 
         self.btn_Volver = QPushButton("↢⁂ Volver al Formulario Principal ⁂↣  ")
         self.btn_Volver.clicked.connect(self.volver)
+
+        self.btn_Agregar_Categoría = QPushButton("Agregar Categoría")
+        #self.btn_Agregar_Categoría.clicked.connect()
+
+        self.btn_Agregar_Proveedor = QPushButton("Agregar Proveedor")
+        #self.btn_Agregar_Proveedor.clicked.connect()
+
+        self.btn_Stock = QPushButton("Stock")
+        #self.btn_Stock.clicked.connect()
         
 
     def layouts(self):
@@ -392,11 +401,14 @@ class AddProducto(QWidget):
         self.bottom_layout = QFormLayout()
         self.left_layout = QFormLayout()
         self.botones_layout = QHBoxLayout()
+        self.botonesForm_layout = QHBoxLayout()
 
         # Agregar los widgets (childrens) al main_layout
         self.main_layout.addLayout(self.top_layout)
+        self.main_layout.addLayout(self.botonesForm_layout)
         self.main_layout.addLayout(self.bottom_layout)
         self.main_layout.addLayout(self.botones_layout)
+
         #self.main_layout.addLayout(self.left_layout, 40)
 
         # Agregar los widgets al top layout
@@ -420,6 +432,10 @@ class AddProducto(QWidget):
         self.btn_cancelar.hide()
         self.btn_Aceptar.hide()
         self.botones_layout.addWidget(self.btn_cancelar)
+        self.botonesForm_layout.addWidget(self.btn_Agregar_Categoría)
+        self.botonesForm_layout.addWidget(self.btn_Agregar_Proveedor)
+        self.botonesForm_layout.addWidget(self.btn_Stock)
+                
                 
         # Establecer el layout principal de la ventana
         self.setLayout(self.main_layout)
