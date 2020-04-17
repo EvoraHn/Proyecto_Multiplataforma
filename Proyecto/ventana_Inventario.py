@@ -14,7 +14,7 @@ from PIL import Image
 #from Stock import ProductoDB
 
 
-class Main(QWidget):
+class Ventana_Inventario(QWidget):
     """ Ventana principal de la Aplicación. """
        
     def __init__(self):
@@ -285,10 +285,7 @@ class Main(QWidget):
                 self.inventario_list.addItem(
                     "{0} --- {1}---{2}---{3}---{4}".format(Stock[1], Stock[2], Stock[3],Stock[4],Stock[5]))
 
-
-
-    
-    
+        
     def Mostrar_Producto(self):
         """ Muestra los atributos del producto que se encuentra seleccionado """
         Stock = self.inventario_list.currentItem().text()
@@ -469,15 +466,11 @@ class ProductoDB:
             print(e)
 
         return None
-
-    
-
-
-
+   
 
 def main():
     app = QApplication(sys.argv)
-    window = Main()
+    window = Ventana_Inventario()
     sys.exit(app.exec_())
 
 
