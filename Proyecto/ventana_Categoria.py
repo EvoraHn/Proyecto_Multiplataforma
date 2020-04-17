@@ -22,6 +22,7 @@ class ventana_Categoria(QWidget):
         super().__init__()
 
         self.producto_db = ProductoDB("laminas.db")
+        self.setWindowTitle("Formulario Categoria")
 
         self.setGeometry(450, 150, 750, 600)
         self.UI()
@@ -36,8 +37,10 @@ class ventana_Categoria(QWidget):
 
     def main_desing(self):
         """ Diseño principal de la aplicación. """
+     
         self.label_buscar = QLabel("Buscar: ")
         self.input_buscar = QLineEdit()
+
         self.inventario_list = QListWidget()
         self.inventario_list.itemClicked.connect(self.Mostrar_Producto)
 
@@ -60,12 +63,15 @@ class ventana_Categoria(QWidget):
 
         self.label_idCategoria = QLabel("ID Categoria: ")
         self.input_idCategoria = QLineEdit()
+        self.input_idCategoria.setPlaceholderText("00000")
 
         self.label_tipoCategoria = QLabel("Tipo Categoria: ")
         self.input_tipoCategoria = QLineEdit()
+        self.input_tipoCategoria.setPlaceholderText("Esta es una Categoria")
 
         self.label_descripcion = QLabel("Descripcion: ")
         self.input_descripcion = QLineEdit()
+        self.input_descripcion.setPlaceholderText("Descripcion Categoria")
 
         self.label_vacia = QLabel(" ")
 
@@ -286,7 +292,9 @@ class ventana_Categoria(QWidget):
         producto = self.inventario_list.currentItem().text()
         id = producto.split(" --- ")[0]
 
-        QMessageBox.information(self,"este es el ID{0}",str (id[0]))
+        #message para mostrar que id recibe el producto
+
+        #QMessageBox.information(self,"este es el ID{0}",str (id[0]))
  
         producto = self.producto_db.Obtener_Producto(id)
         
