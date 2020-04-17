@@ -31,6 +31,7 @@ class Main(QWidget):
         """ Definimos los objetos que componen la interfaz de usuario. """
         self.main_desing()
         self.layouts()
+        self. set_Stock_list()
 
     def main_desing(self):
         """ Diseño principal de la aplicación. """
@@ -44,9 +45,16 @@ class Main(QWidget):
         self.btn_agregar.clicked.connect(self.insert)
 
         self.btn_editar = QPushButton("Editar")
+        self.btn_editar.clicked.connect(self.Habilitar_edicion)
 
         self.btn_eliminar = QPushButton("Eliminar")
         self.btn_eliminar.clicked.connect(self.delete)
+
+        self.btn_Aceptar = QPushButton("Aceptar")
+        self.btn_Aceptar.clicked.connect(self.aceptar_edicion)
+        
+        self.btn_cancelar = QPushButton("Cancelar")
+        self.btn_cancelar.clicked.connect(self.cancelar_edicion)
 
         self.btn_buscar = QPushButton("Buscar")
 
@@ -76,6 +84,9 @@ class Main(QWidget):
         self.right_bottom_layout = QHBoxLayout()
         self.top_layout = QVBoxLayout()
         self.left_bottom_layout = QHBoxLayout()
+        self.botones_layout = QHBoxLayout()
+        self.botonesForm_layout = QHBoxLayout()
+
 
         # Agregar los layouts hijos al layout padre
         self.right_main_layout.addLayout(self.right_top_layout)
@@ -83,12 +94,18 @@ class Main(QWidget):
         self.main_layout.addLayout(self.right_main_layout)
         self.main_layout.addLayout(self.top_layout)
         self.main_layout.addLayout(self.left_bottom_layout)
+        self.main_layout.addLayout(self.botonesForm_layout)
+        self.main_layout.addLayout(self.botones_layout)
 
         # Agregar widgets a los layouts
         self.left_bottom_layout.addWidget(self.inventario_list)
         self.right_bottom_layout.addWidget(self.btn_agregar)
         self.right_bottom_layout.addWidget(self.btn_editar)
         self.right_bottom_layout.addWidget(self.btn_eliminar)
+        self.botones_layout.addWidget(self.btn_Aceptar)
+        self.btn_cancelar.hide()
+        self.btn_Aceptar.hide()
+        self.botones_layout.addWidget(self.btn_cancelar)
         #self.bottom_layout.addRow("", self.btn_agregarProducto, self. btn_editarProducto, self.btn_eliminarProducto)
         self.right_top_layout.addRow(self.label_buscar, self.input_buscar)
         self.right_top_layout.addRow("", self.btn_buscar)
@@ -112,7 +129,7 @@ class Main(QWidget):
         if self.inventario_list.selectedItems():
             stock = self.inventario_list.currentItem().text()
             id = stock.split(" --- ")[0]
-            stock = self.producto_db. Obtener_Stock(id)
+            stock = self.producto_db.Obtener_Producto(id)
             yes = QMessageBox.Yes
 
             if stock:
@@ -122,9 +139,9 @@ class Main(QWidget):
                
 
                 if question == QMessageBox.Yes:
-                    self.producto_db.delete_producto(stock[0])
+                    self.producto_db.delete_Stock(stock[0])
                     self.inventario_list.clear()
-                    self.set_inventario_list()
+                    self.set_Stock_list()
                     self.limpiar()
                     QMessageBox.information(self, "Información", "¡Producto eliminado satisfactoriamente!")
                     
@@ -162,6 +179,114 @@ class Main(QWidget):
         else:
             QMessageBox.information(
                 self, "Advertencia", "Debes ingresar toda la información")
+    
+    def update(self,identificador):
+        """ Editar los valores del formulario a la tabla de producto """
+        # Verificar si los valores requeridos fueron agregados
+        if (self.input_id.text() or
+                self.input_notas.text() or
+                self.input_precio_unitario.text() or 
+                 self.input_cantidad or self.input_fecha_actualizacion != ""):
+            stock = (self.input_id.text(),self.input_notas.text(),
+                      self.input_precio_unitario.text(),
+                       self.input_cantidad.text(),self.input_fecha_actualizacion.text())
+
+            try:
+                
+                self.producto_db.update_Stock(stock)
+                QMessageBox.information(
+                    self, "Información", "producto modificado correctamente")
+                
+            except Error as e:
+                QMessageBox.information(
+                    self, "Error", "Error al momento de editar el producto")
+        else:
+            QMessageBox.information(
+                self, "Advertencia", "Debes ingresar toda la información")
+
+
+    def Habilitar_edicion(self):
+        """verifica que tenga seleccionado un producto y habilita los txt"""
+        if self.inventario_list.selectedItems():
+            stock = self.inventario_list.currentItem().text()
+            id = stock.split(" --- ")[0]
+            stock = self.producto_db.Obtener_Producto(id)
+            yes = QMessageBox.Yes
+
+            if stock:
+                question_text = f"¿Está seguro de editar el producto {stock[1]}?"
+                question = QMessageBox.question(self, "Advertencia", question_text,
+                    QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+               
+
+                if question == QMessageBox.Yes:
+                    self.btn_editar.hide()
+                    self.btn_agregar.hide()
+                    self.btn_eliminar.hide()
+                    self.Bloquear_Inputs(False)
+                    self.btn_Aceptar.show()
+                    self.btn_cancelar.show()
+            else:
+                QMessageBox.information(self, "Advertencia", "Ha ocurrido un error. Reintente nuevamente")
+
+        else:
+            QMessageBox.information(self, "Advertencia", "Favor seleccionar un Producto a editar")
+
+    def aceptar_edicion(self):
+        """Edita los parametros que han cambiado en los textbox"""
+        if self.inventario_list.selectedItems():
+            stock = self.inventario_list.currentItem().text()
+            id = stock.split(" --- ")[0]
+            stock = self.producto_db.Obtener_Producto(id)
+            if stock:
+                self.update(stock[0])
+                
+                self.inventario_list.clear()
+                self.set_Stock_list()
+                self.limpiar()
+            else:
+                QMessageBox.information(self, "Advertencia", "Ha ocurrido un error. Reintente nuevamente")
+        else:
+            QMessageBox.information(self, "Advertencia", "Favor seleccionar un Producto a editar")
+
+
+    def cancelar_edicion(self):
+        """Cancela la edicion y envia al usuario a la ventana Principal"""
+        self.inventario_list.clear()
+        self.set_Stock_list()
+        self.limpiar()
+        self.Bloquear_Inputs(False)
+        self.btn_editar.show()
+        self.btn_agregar.show()
+        self.btn_eliminar.show()
+        self.btn_Aceptar.hide()
+        self.btn_cancelar.hide()
+
+    def Bloquear_Inputs(self,estado):
+        """Deshabilita los QwidgetsInputs para solo dejarlos
+         en modo lectura.
+         
+         parametro estado: recibe True o false para habilitar o no 
+         los textbox (inputs) """
+
+        #self.input_idProducto.setReadOnly(estado)
+        self.input_id.setReadOnly(estado)
+        self.input_notas.setReadOnly(estado)
+        self.input_precio_unitario.setReadOnly(estado)
+        self.input_cantidad.setReadOnly(estado)
+        self.input_fecha_actualizacion.setReadOnly(estado)
+        
+    
+    def set_Stock_list(self):
+        """ Obtiene las tuplas de Productos y las muestra en la lista """
+        productos = self.producto_db.get_all_Stock()
+
+        if productos:
+            for Stock in productos:
+                self.inventario_list.addItem(
+                    "{0} --- {1}---{2}---{3}---{4}".format(Stock[1], Stock[2], Stock[3],Stock[4],Stock[5]))
+
+
 
     
     
@@ -169,17 +294,18 @@ class Main(QWidget):
         """ Muestra los atributos del producto que se encuentra seleccionado """
         Stock = self.inventario_list.currentItem().text()
         id = Stock.split(" --- ")[0]
-
+        #QMessageBox.information(self,"este es el id {0}",str(id))
         Stock = self.producto_db.Obtener_Producto(id)
         
         if Stock:
             #se deshabilitan los textbox
-            self.Bloquear_Inputs(True)
-            id_producto =  Stock[0]
-            notas =  Stock[1]
-            precio_unitario =  Stock[2]
-            cantidad =  Stock[3]
-            fecha_actualizacion =  Stock[4]
+            #self.Bloquear_Inputs(True)
+            #id_Stock = Stock[0]
+            id_producto =  Stock[1]
+            notas =  Stock[2]
+            precio_unitario =  Stock[3]
+            cantidad =  Stock[4]
+            fecha_actualizacion =  Stock[5]
             
 
             #se muestran los valores en los text
@@ -267,6 +393,26 @@ class ProductoDB:
         except Error as e:
             print(e)
 
+    def Obtener_Producto(self, id):
+        """
+        Busca un producto mediante el valor del Código.
+
+        param: Code: Codigo unico para identificar cada lámina.
+        :return: Un arreglo con los atributos del producto.
+        """
+        sqlQuery = " SELECT * FROM Stock WHERE id_producto = ?"
+
+        try:
+            cursor = self.connection.cursor()
+            # fetchone espera que se retorne una tupla (1,)
+            producto = cursor.execute(sqlQuery, (id,)).fetchone()
+
+            return producto
+        except Error as e:
+            print(e)
+
+        return None
+
     def update_Stock(self,productos):
         """
         Realiza una modificación a la tabla de Stock.
@@ -275,9 +421,10 @@ class ProductoDB:
         :return:
         """
         sqlUpdate = """
-                    UPDATE producto
-                        SET = id_producto?,Notas = ?,Precio_unitario = ?
+                    UPDATE Stock
+                        SET Notas = ?,Precio_unitario = ?
                         ,Cantidad = ?,Fecha_Actualizacion = ?
+                        WHERE id_producto = ?
                     """
         try:
             cursor = self.connection.cursor()
@@ -296,7 +443,7 @@ class ProductoDB:
         """
         #QMessageBox.information("ESTE ES EL CODIGO",str(codigo))
         sqlDelete = """
-                    delete from producto where id_producto = ?
+                    delete from Stock where id_Stock = ?
                     """
         try:
            
