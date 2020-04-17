@@ -10,7 +10,9 @@ import sys
 import os
 import sqlite3
 from sqlite3 import Error
-#from producto import ProductoDB
+from ventana_Categoria import *
+from ventana_Inventario import *
+#from producto import 
 
 
 class Main(QWidget):
@@ -334,6 +336,21 @@ class AddProducto(QWidget):
         self.setGeometry(150, 50, 750, 600)
         self.UI()
         self.show()
+        self.btn_Agregar_Categoría.clicked.connect(self.abrirventana2)
+        self.btn_Stock.clicked.connect(self.abrir)
+
+    def abrir (self):
+        self.ventana=QtWidgets.QMainWindow()
+        self.ui=Ventana_Inventario()
+        #self.iu.setupUi(self.ventana)
+        #self.ventana.show()
+
+    def abrirventana2(self):
+       self.ventana=QtWidgets.QMainWindow()
+       self.ui=ventana_Categoria()
+       #self.ventana.show()
+
+
 
     def UI(self):
         """ Cargar los layouts de diseño de la ventana """
@@ -397,7 +414,7 @@ class AddProducto(QWidget):
         self.btn_Volver.clicked.connect(self.volver)
 
         self.btn_Agregar_Categoría = QPushButton("Agregar Categoría")
-        #self.btn_Agregar_Categoría.clicked.connect()
+        #self.btn_Agregar_Categoría.clicked.connect(self.onClickCategoria)
 
         self.btn_Agregar_Proveedor = QPushButton("Agregar Proveedor")
         #self.btn_Agregar_Proveedor.clicked.connect()
@@ -451,6 +468,7 @@ class AddProducto(QWidget):
                 
         # Establecer el layout principal de la ventana
         self.setLayout(self.main_layout)
+
 
     def upload_image(self):
         """ Permite subir una imagen de perfil del empleado """
