@@ -12,6 +12,7 @@ import sqlite3
 from sqlite3 import Error
 from ventana_Categoria import *
 from ventana_Inventario import *
+from proveedor import *
 #from producto import 
 
 
@@ -338,6 +339,7 @@ class AddProducto(QWidget):
         self.show()
         self.btn_Agregar_Categoría.clicked.connect(self.abrirventana2)
         self.btn_Stock.clicked.connect(self.abrir)
+        self.btn_Agregar_Proveedor.clicked.connect(self.abrirventana3)
 
     def abrir (self):
         self.ventana=QtWidgets.QMainWindow()
@@ -349,6 +351,10 @@ class AddProducto(QWidget):
        self.ventana=QtWidgets.QMainWindow()
        self.ui=ventana_Categoria()
        #self.ventana.show()
+
+    def abrirventana3(self):
+        self.ventana=QtWidgets.QMainWindow()
+        self.ui=AgregarProveedor()
 
 
 
