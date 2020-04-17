@@ -20,9 +20,10 @@ class Ventana_Inventario(QWidget):
     def __init__(self):
         super().__init__()
         # Crear o abrir la conexión a la base de datos
+        self.setWindowTitle("Formulario Stock")
         self.producto_db = ProductoDB("laminas.db")
 
-        self.setWindowTitle("Ventana Inventario")
+        
         self.setGeometry(450, 150, 750, 600)
         self.UI()
         self.show()
@@ -60,18 +61,23 @@ class Ventana_Inventario(QWidget):
 
         self.label_id = QLabel("ID Producto: ")
         self.input_id = QLineEdit()
+        self.input_id.setPlaceholderText("00000")
 
         self.label_notas = QLabel("Notas: ")
         self.input_notas = QLineEdit()
+        self.input_notas.setPlaceholderText("Agregue una Nota")
 
         self.label_precio_unitario = QLabel("Precio unitario: ")
         self.input_precio_unitario = QLineEdit()
+        self.input_precio_unitario.setPlaceholderText("000.00")
 
         self.label_cantidad = QLabel("Cantidad: ")
         self.input_cantidad = QLineEdit()
+        self.input_cantidad.setPlaceholderText("000")
 
         self.label_fecha_actualizacion = QLabel("Fecha de actualización : ")
         self.input_fecha_actualizacion = QLineEdit()
+        self.input_fecha_actualizacion.setPlaceholderText("Dia/Mes/Año")
 
         self.label_vacia = QLabel(" ")
 
