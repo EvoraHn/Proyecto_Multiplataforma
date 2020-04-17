@@ -35,6 +35,7 @@ class Main(QWidget):
         self.main_desing()
         self.layouts()
         self.set_producto_list()
+        #self.producto_db.crear_vista_principal()
 
     def main_desing(self):
         """ Diseño principal de la aplicación. """
@@ -48,13 +49,13 @@ class Main(QWidget):
         self.btn_inventario = QPushButton("Inventario")
         self.btn_inventario.clicked.connect(self.add_producto)
         self.btn_ventas = QPushButton("Ventas")
-        #self.btn_ventas.clicked.connect(self.hacer_venta)
+        self.btn_ventas.clicked.connect(self.hacer_venta)
         self.btn_compras = QPushButton("Compras")
         self.btn_compras.clicked.connect(self.hacer_compra)
         
         self.btn_buscar = QPushButton("Buscar Lámina")
         self.btn_buscar.clicked.connect(self.set_Buscar_list)
-        self.label_cantidad= QLabel("Cantidad: ")
+        self.label_cantidad= QLabel("cantidad: ")
         self.input_cantidad = QLineEdit()
         self.input_cantidad.setPlaceholderText("Cantidad")
 
@@ -139,6 +140,56 @@ class Main(QWidget):
 
     def hacer_compra(self):
         """Hace una Compra"""
+        # Verificar si los valores requeridos fueron agregados
+        producto = self.lista_producto.currentItem().text()
+        id = producto.split(" --- ")[0]
+
+        if (self.input_cantidad != ""):
+            Compra = (self.input_cantidad.text(),id)
+
+            try:
+                self.producto_db.update_Stock(Compra)
+                QMessageBox.information(
+                self, "Información", "Su compra se ha realizado correctamente")
+                #self.lista_producto.clear()
+                #self.()
+                #self.limpiar()
+                #self.close()
+                #self.main = Main()
+            except Error as e:
+                QMessageBox.information(
+                    self, "Error", "Error al momento de agregar el producto")
+        else:
+            QMessageBox.information(
+                self, "Advertencia", "Debes ingresar toda la información")
+    
+    def hacer_venta(self):
+        """realiza una venta"""
+        #verifica los campos en la tabla de inventario
+        producto = self.lista_producto.currentItem().text()
+        id = producto.split(" --- ")[0]
+
+        if (self.input_cantidad != ""):
+            Compra = (self.input_cantidad.text(),id)
+
+            try:
+                self.producto_db.update_Stock(Compra)
+                QMessageBox.information(
+                self, "Información", "Su venta se ha realizado correctamente")
+                #self.lista_producto.clear()
+                #self.()
+                #self.limpiar()
+                #self.close()
+                #self.main = Main()
+            except Error as e:
+                QMessageBox.information(
+                    self, "Error", "Error al momento de agregar el producto")
+        else:
+            QMessageBox.information(
+                self, "Advertencia", "Debes ingresar toda la información")
+
+
+        
 
 
 class ProductoDB:
@@ -152,7 +203,7 @@ class ProductoDB:
                                     id_producto integer UNIQUE PRIMARY KEY,
                                     codigo text UNIQUE NOT NULL,
                                     nombre text NOT NULL,
-                                    descripcion text,
+                                    descripcion TEXT,
                                     categoria integer NOT NULL,
                                     proveedor integer NOT NULL
                                   );
@@ -236,7 +287,7 @@ class ProductoDB:
         """
         sqlUpdate = """
                     UPDATE producto
-                        SET codigo = ?,nombre = ?,descripcion = ?
+                        SET codigo = ?,nombre = ?,cantidad = ?
                         ,categoria = ?,proveedor = ?
                         WHERE id_producto = ?
                         
@@ -249,6 +300,28 @@ class ProductoDB:
             self.connection.commit()
         except Error as e:
             print(e)
+
+    def update_Stock(self,Stock):
+        """
+        Realiza una modificación a la tabla de Stock.
+        :param producto: Una estructura que contiene
+                         los datos del producto.
+        :return:
+        """
+        sqlUpdate = """
+                    UPDATE producto
+                        SET descripcion = (descripcion + ?)
+                        WHERE id_producto = ?
+                    """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(sqlUpdate,Stock)
+            # Indicarle al motor de base de datos
+            # que los cambios sean persistentes
+            self.connection.commit()
+        except Error as e:
+            print(e)
+
 
     def delete_producto(self,codigo):
         """
@@ -266,6 +339,21 @@ class ProductoDB:
             cursor.execute(sqlDelete,(codigo,))
             self.connection.commit()
             return True
+        except Error as e:
+            print(e)
+
+        return None
+
+    def get_all_vista(self):
+        """ Obtiene todas las tuplas de la tabla producto """
+
+        sqlQuery = "select * from vista_principal ORDER BY ROWID ASC "
+
+        try:
+            cursor = self.connection.cursor()
+            productos = cursor.execute(sqlQuery).fetchall()
+
+            return productos
         except Error as e:
             print(e)
 
@@ -388,9 +476,9 @@ class AddProducto(QWidget):
         self.input_nombre = QLineEdit()
         self.input_nombre.setPlaceholderText("Lámina Educativa")
 
-        self.label_descripcion= QLabel("Descripción : ")
+        self.label_descripcion= QLabel("descripcion : ")
         self.input_descripcion = QLineEdit()
-        self.input_descripcion.setPlaceholderText("Esta es una lámina educativa")
+        self.input_descripcion.setPlaceholderText("Esta es una descripcion")
 
         self.label_categoria= QLabel("Categoría : ")
         self.input_categoria = QLineEdit()
