@@ -187,12 +187,12 @@ class Main(QWidget):
                 self.input_notas.text() or
                 self.input_precio_unitario.text() or 
                  self.input_cantidad or self.input_fecha_actualizacion != ""):
-            stock = (self.input_id.text(),self.input_notas.text(),
+            stock = (self.input_notas.text(),
                       self.input_precio_unitario.text(),
-                       self.input_cantidad.text(),self.input_fecha_actualizacion.text())
+                       self.input_cantidad.text(),self.input_fecha_actualizacion.text(),self.input_id.text())
 
             try:
-                
+                #QMessageBox.information(self,"este",stock)
                 self.producto_db.update_Stock(stock)
                 QMessageBox.information(
                     self, "Información", "producto modificado correctamente")
@@ -240,7 +240,6 @@ class Main(QWidget):
             stock = self.producto_db.Obtener_Producto(id)
             if stock:
                 self.update(stock[0])
-                
                 self.inventario_list.clear()
                 self.set_Stock_list()
                 self.limpiar()
@@ -413,7 +412,7 @@ class ProductoDB:
 
         return None
 
-    def update_Stock(self,productos):
+    def update_Stock(self,Stock):
         """
         Realiza una modificación a la tabla de Stock.
         :param producto: Una estructura que contiene
@@ -428,7 +427,7 @@ class ProductoDB:
                     """
         try:
             cursor = self.connection.cursor()
-            cursor.execute(sqlUpdate,productos)
+            cursor.execute(sqlUpdate,Stock)
             # Indicarle al motor de base de datos
             # que los cambios sean persistentes
             self.connection.commit()

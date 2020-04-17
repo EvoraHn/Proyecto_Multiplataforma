@@ -377,6 +377,7 @@ class AddProducto(QWidget):
 
         self.btn_Aceptar = QPushButton("Aceptar")
         self.btn_Aceptar.clicked.connect(self.aceptar_edicion)
+        
         self.btn_cancelar = QPushButton("Cancelar")
         self.btn_cancelar.clicked.connect(self.cancelar_edicion)
 
