@@ -41,12 +41,19 @@ class Main(QWidget):
         #self.image = QLabel()
 
         self.lista_producto = QListWidget()
+        #self.lista_producto.clicked()
         self.btn_inventario = QPushButton("Inventario")
         self.btn_inventario.clicked.connect(self.add_producto)
         self.btn_ventas = QPushButton("Ventas")
+        #self.btn_ventas.clicked.connect(self.hacer_venta)
         self.btn_compras = QPushButton("Compras")
+        self.btn_compras.clicked.connect(self.hacer_compra)
+        
         self.btn_buscar = QPushButton("Buscar Lámina")
         self.btn_buscar.clicked.connect(self.set_Buscar_list)
+        self.label_cantidad= QLabel("Cantidad: ")
+        self.input_cantidad = QLineEdit()
+        self.input_cantidad.setPlaceholderText("Cantidad")
 
     def layouts(self):
         """ Layouts que componen la aplicación. """
@@ -61,7 +68,6 @@ class Main(QWidget):
      
 
         # Agregar los widgets (childrens) al main_layout
-        
         self.principal_layout.addLayout(self.arriba_layout)
 
         #self.principal_layout.addLayout(self.abajo_layout)
@@ -80,6 +86,8 @@ class Main(QWidget):
         self.izquierda_layout.addWidget(self.btn_ventas)
 
         # Agregar el listado a derecha_layout
+        self.arriba_layout.addWidget(self.label_cantidad)
+        self.arriba_layout.addWidget(self.input_cantidad)
         self.derecha_layout.addWidget(self.lista_producto)
 
         
@@ -96,7 +104,7 @@ class Main(QWidget):
         """ Inicia el formulario de ingreso de datos del empleado """
         self.new_producto = AddProducto(self.producto_db)
         self.close()
-        
+      
     def set_producto_list(self):
         """ Obtiene las tuplas de empleados y las muestra en la lista """
         productos = self.producto_db.get_all_producto()
@@ -125,6 +133,10 @@ class Main(QWidget):
             for producto in productos:
                 self.lista_producto.addItem(
                     "{0} <-> {1} <-> {2}".format(producto[1], producto[2], producto[3]))
+
+    def hacer_compra(self):
+        """Hace una Compra"""
+
 
 class ProductoDB:
     """ Base de datos SQLite para los productos. """
@@ -377,11 +389,21 @@ class AddProducto(QWidget):
 
         self.btn_Aceptar = QPushButton("Aceptar")
         self.btn_Aceptar.clicked.connect(self.aceptar_edicion)
+        
         self.btn_cancelar = QPushButton("Cancelar")
         self.btn_cancelar.clicked.connect(self.cancelar_edicion)
 
         self.btn_Volver = QPushButton("↢⁂ Volver al Formulario Principal ⁂↣  ")
         self.btn_Volver.clicked.connect(self.volver)
+
+        self.btn_Agregar_Categoría = QPushButton("Agregar Categoría")
+        #self.btn_Agregar_Categoría.clicked.connect()
+
+        self.btn_Agregar_Proveedor = QPushButton("Agregar Proveedor")
+        #self.btn_Agregar_Proveedor.clicked.connect()
+
+        self.btn_Stock = QPushButton("Stock")
+        #self.btn_Stock.clicked.connect()
         
 
     def layouts(self):
@@ -392,11 +414,14 @@ class AddProducto(QWidget):
         self.bottom_layout = QFormLayout()
         self.left_layout = QFormLayout()
         self.botones_layout = QHBoxLayout()
+        self.botonesForm_layout = QHBoxLayout()
 
         # Agregar los widgets (childrens) al main_layout
         self.main_layout.addLayout(self.top_layout)
+        self.main_layout.addLayout(self.botonesForm_layout)
         self.main_layout.addLayout(self.bottom_layout)
         self.main_layout.addLayout(self.botones_layout)
+
         #self.main_layout.addLayout(self.left_layout, 40)
 
         # Agregar los widgets al top layout
@@ -412,7 +437,6 @@ class AddProducto(QWidget):
         self.bottom_layout.addRow(self.label_categoria, self.input_categoria)
         self.bottom_layout.addRow(self.label_proveedor, self.input_proveedor)
         self.bottom_layout.addWidget(self.product_list)
-        #self.botones_layout.addWidget("")
         self.botones_layout.addWidget(self.btn_agregarProducto)
         self.botones_layout.addWidget(self.btn_editarProducto)
         self.botones_layout.addWidget(self.btn_eliminarProducto)
@@ -420,6 +444,10 @@ class AddProducto(QWidget):
         self.btn_cancelar.hide()
         self.btn_Aceptar.hide()
         self.botones_layout.addWidget(self.btn_cancelar)
+        self.botonesForm_layout.addWidget(self.btn_Agregar_Categoría)
+        self.botonesForm_layout.addWidget(self.btn_Agregar_Proveedor)
+        self.botonesForm_layout.addWidget(self.btn_Stock)
+                
                 
         # Establecer el layout principal de la ventana
         self.setLayout(self.main_layout)
@@ -624,7 +652,7 @@ class AddProducto(QWidget):
         """ Muestra los atributos del producto que se encuentra seleccionado """
         producto = self.product_list.currentItem().text()
         id = producto.split(" --- ")[0]
-
+        #QMessageBox.information(self,"este es el Id {0}",str(id))
         producto = self.producto_db.Obtener_Producto(id)
         
         if producto:
